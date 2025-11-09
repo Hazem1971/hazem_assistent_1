@@ -1,0 +1,63 @@
+{
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "testimonials": "Testimonials",
+    "login": "Log In",
+    "signup": "Sign Up"
+  },
+  "hero": {
+    "title": "Generate Viral Social Media Content with AI",
+    "subtitle": "Stop guessing. Start growing. Our AI analyzes your brand's voice to create posts, and scripts that resonate with your audience in any language.",
+    "cta": "Start Generating for Free"
+  },
+  "features": {
+    "title": "Everything You Need to Go Viral",
+    "f1_title": "Brand Voice Analysis",
+    "f1_desc": "Import posts or link your Facebook page. Our AI learns your unique tone.",
+    "f2_title": "Multi-Platform Content",
+    "f2_desc": "Get tailored content for Facebook, TikTok, and YouTube in one click.",
+    "f3_title": "Multilingual Magic",
+    "f3_desc": "Primary support for Arabic (RTL) and English. Reach a global audience.",
+    "f4_title": "Video Scripts",
+    "f4_desc": "Generate engaging 30-60 second video scripts for TikTok and YouTube Shorts."
+  },
+  "pricing": {
+    "title": "Choose Your Plan",
+    "free_tier": "Free",
+    "free_price": "$0",
+    "free_desc": "For individuals starting out.",
+    "pro_tier": "Pro",
+    "pro_price": "$29",
+    "pro_desc": "For professionals and small teams.",
+    "enterprise_tier": "Enterprise",
+    "enterprise_desc": "For large organizations.",
+    "monthly": "/month",
+    "cta_free": "Get Started",
+    "cta_pro": "Upgrade to Pro",
+    "cta_enterprise": "Contact Sales",
+    "feature_generations": "Generations/month",
+    "feature_brands": "Brand Voices",
+    "feature_analysis": "Tone Analysis",
+    "feature_support": "Priority Support"
+  },
+  "testimonials": {
+    "title": "Loved by Creators Worldwide",
+    "t1_text": "\"Marketing AI transformed our content strategy. Our engagement in Arabic has skyrocketed!\"",
+    "t1_author": "Fatima Al-Jamil",
+    "t1_role": "Coffee Shop Owner",
+    "t2_text": "\"I save hours every week. The AI just gets my brand's humor and style perfectly.\"",
+    "t2_author": "Youssef Hassan",
+    "t2_role": "Burger Shop Marketer"
+  },
+  "footer": {
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "about": "About Us",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© 2025 Marketing AI. All rights reserved."
+  }
+}
