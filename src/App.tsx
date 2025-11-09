@@ -3,17 +3,19 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/home-page';
 import { PageLayout } from './components/layout/page-layout';
 import { useDirection } from './hooks/use-direction';
+import { LoginPage } from './pages/login-page';
+import { SignupPage } from './pages/signup-page';
 
 function App() {
   useDirection();
 
   return (
-    <PageLayout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        {/* Add other routes for login, signup, dashboard here */}
-      </Routes>
-    </PageLayout>
+    <Routes>
+      <Route path="/" element={<PageLayout><HomePage /></PageLayout>} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      {/* Add other routes for dashboard here */}
+    </Routes>
   );
 }
 
