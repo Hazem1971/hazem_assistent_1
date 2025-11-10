@@ -1,8 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Globe, BotMessageSquare, LayoutDashboard, LogOut, ShieldCheck } from 'lucide-react';
+import { Globe, BotMessageSquare, LayoutDashboard, LogOut, ShieldCheck, UserCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Header() {
   const { t, i18n } = useTranslation();
@@ -58,16 +66,31 @@ export function Header() {
                     </Link>
                   </Button>
                 )}
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/dashboard">
-                    <LayoutDashboard className="me-2 h-4 w-4" />
-                    {t('nav.dashboard')}
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="me-2 h-4 w-4" />
-                  {t('nav.logout')}
-                </Button>
+                 <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                     <Button variant="outline" size="sm">
+                        <UserCircle className="me-2 h-4 w-4" />
+                        My Account
+                      </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                      <LayoutDashboard className="me-2 h-4 w-4" />
+                      <span>{t('nav.dashboard')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/account')}>
+                      <UserCircle className="me-2 h-4 w-4" />
+                      <span>{t('nav.account')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="me-2 h-4 w-4" />
+                      <span>{t('nav.logout')}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>

@@ -17,6 +17,7 @@ import AdminAiSettingsPage from './pages/admin/ai-settings';
 import AdminSystemPage from './pages/admin/system';
 import AdminSiteContentPage from './pages/admin/site-content';
 import AdminMarketingPage from './pages/admin/marketing';
+import AccountPage from './pages/account-page';
 
 function App() {
   useDirection();
@@ -34,6 +35,14 @@ function App() {
         element={
           <PrivateRoute>
             <DashboardPage />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/account" 
+        element={
+          <PrivateRoute>
+            <AccountPage />
           </PrivateRoute>
         } 
       />

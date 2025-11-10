@@ -4,6 +4,7 @@ export interface GeneratedContent {
   id: string;
   platform: Platform;
   text: string;
+  createdAt: string;
 }
 
 export interface ToneAnalysisResult {
@@ -57,4 +58,19 @@ export interface Coupon {
   usageCount: number;
   usageLimit?: number;
   isActive: boolean;
+}
+
+export interface BillingInvoice {
+  id: string;
+  date: string;
+  amount: number;
+  url: string;
+}
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  key: string;
+  createdAt: string;
+  lastUsed: string | null;
 }
