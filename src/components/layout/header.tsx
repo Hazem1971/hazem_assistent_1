@@ -1,15 +1,23 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Globe, BotMessageSquare } from 'lucide-react';
+import { Globe, BotMessageSquare, LayoutDashboard, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 export function Header() {
   const { t, i18n } = useTranslation();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const currentLang = i18n.language;
 
   const toggleLanguage = () => {
     const newLang = currentLang === 'en' ? 'ar' : 'en';
     i18n.changeLanguage(newLang);
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    navigate('/');
   };
 
   const navLinks = [
@@ -40,12 +48,29 @@ export function Header() {
             <span className="sr-only">Toggle language</span>
           </Button>
           <nav className="flex items-center gap-2">
-            <Button variant="ghost" asChild>
-              <Link to="/login">{t('nav.login')}</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/signup">{t('nav.signup')}</Link>
-            </Button>
+            {user ? (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/dashboard">
+                    <LayoutDashboard className="me-2 h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="me-2 h-4 w-4" />
+                  {t('nav.login')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/login">{t('nav.login')}</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/signup">{t('nav.signup')}</Link>
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       </div>

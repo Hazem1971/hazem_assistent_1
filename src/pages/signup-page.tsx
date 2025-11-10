@@ -1,11 +1,13 @@
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import React, { useState } from "react"
+import { Link } from "react-router-dom"
+import ReCAPTCHA from "react-google-recaptcha"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthLayout } from "@/components/layout/auth-layout"
 import { Loader2 } from "lucide-react"
+import { GoogleIcon } from "@/components/ui/icons"
 
 export function SignupPage() {
   const [email, setEmail] = useState('');
@@ -13,33 +15,30 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const navigate = useNavigate();
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = React.createRef<ReCAPTCHA>();
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) {
+      setError("Please complete the reCAPTCHA.");
+      return;
+    }
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     // --- Placeholder for Supabase Auth ---
-    // Once Supabase is connected, the following logic will be implemented:
-    //
-    // const { error } = await supabase.auth.signUp({
-    //   email,
-    //   password,
-    // });
-    //
-    // if (error) {
-    //   setError(error.message);
-    // } else {
-    //   setSuccess(true); // Show success message
-    // }
-
-    // Simulating API call
+    // const { error } = await supabase.auth.signUp({ email, password });
+    // if (error) setError(error.message);
+    // else setSuccess(true);
+    
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (password.length < 6) {
-        setError("Password should be at least 6 characters. Please connect Supabase to enable real authentication.");
+        setError("Password should be at least 6 characters.");
     } else {
         setSuccess(true);
         console.log("Simulated successful signup");
@@ -47,6 +46,16 @@ export function SignupPage() {
     // --- End of Placeholder ---
 
     setLoading(false);
+    recaptchaRef.current?.reset();
+    setCaptchaToken(null);
+  };
+
+  const handleGoogleSignup = async () => {
+    // --- Placeholder for Supabase Google Auth ---
+    // const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    // if (error) setError(error.message);
+    console.log("Simulating Google signup. Connect Supabase to enable.");
+    setError("Google signup is a placeholder. Connect Supabase to enable.");
   };
 
   return (
@@ -64,6 +73,22 @@ export function SignupPage() {
         </div>
       ) : (
         <>
+          <div className="grid gap-4">
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignup} disabled={loading}>
+              {loading ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="me-2 h-4 w-4" />}
+              Sign up with Google
+            </Button>
+          </div>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
           <form onSubmit={handleSignup} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -88,8 +113,20 @@ export function SignupPage() {
                 disabled={loading}
               />
             </div>
+            <div className="grid gap-2">
+                {siteKey ? (
+                    <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={siteKey}
+                        onChange={setCaptchaToken}
+                        theme="dark"
+                    />
+                ) : (
+                    <p className="text-sm text-yellow-500">reCAPTCHA is not configured.</p>
+                )}
+            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
               {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               Create account
             </Button>

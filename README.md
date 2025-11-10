@@ -15,6 +15,7 @@ This is a multilingual AI social media content generation platform built with Re
     VITE_SUPABASE_URL="YOUR_SUPABASE_URL"
     VITE_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
     VITE_HUGGINGFACE_API_KEY="YOUR_HUGGINGFACE_API_KEY"
+    VITE_RECAPTCHA_SITE_KEY="YOUR_GOOGLE_RECAPTCHA_SITE_KEY"
     ```
 
 3.  **Run the development server:**
