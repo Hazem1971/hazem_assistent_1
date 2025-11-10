@@ -35,11 +35,6 @@ export function LoginPage() {
     setError(null);
 
     // --- Placeholder for Supabase Auth ---
-    // In a real app, you would call Supabase here.
-    // const { error } = await supabase.auth.signInWithPassword({ email, password });
-    // if (error) setError(error.message);
-    // else navigate(from, { replace: true });
-    
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (email && password) {
@@ -57,10 +52,19 @@ export function LoginPage() {
 
   const handleGoogleLogin = async () => {
     // --- Placeholder for Supabase Google Auth ---
-    // const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-    // if (error) setError(error.message);
     console.log("Simulating Google login. Connect Supabase to enable.");
     setError("Google login is a placeholder. Connect Supabase to enable.");
+  };
+
+  const handleQuickLogin = (quickEmail: string) => {
+    setLoading(true);
+    setError(null);
+    // Simulate a short delay for UX
+    setTimeout(() => {
+      auth.signIn(quickEmail);
+      navigate(from, { replace: true });
+      setLoading(false);
+    }, 500);
   };
 
   return (
@@ -133,6 +137,29 @@ export function LoginPage() {
         <Link to="/signup" className="underline">
           Sign up
         </Link>
+      </div>
+
+      <div className="mt-6 pt-6 border-t">
+        <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t"></span>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                Quick Logins (for Demo)
+                </span>
+            </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Button variant="secondary" onClick={() => handleQuickLogin('admin@marketing.com')} disabled={loading}>
+                {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                Login as Admin
+            </Button>
+            <Button variant="secondary" onClick={() => handleQuickLogin('user@marketing.com')} disabled={loading}>
+                {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                Login as User
+            </Button>
+        </div>
       </div>
     </AuthLayout>
   )
