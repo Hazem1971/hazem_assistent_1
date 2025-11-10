@@ -1,5 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 import {
   Table,
   TableBody,
@@ -9,40 +15,96 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Plan } from '@/types';
+import { EditPlanModal } from './EditPlanModal';
 
-const plans = [
-  { name: 'Free', price: '$0/month', features: '10 generations/mo' },
-  { name: 'Pro', price: '$29/month', features: '100 generations/mo, 5 brands' },
-  { name: 'Enterprise', price: 'Custom', features: 'Unlimited everything' },
-];
+interface SubscriptionPlansProps {
+  plans: Plan[];
+  onUpdatePlan: (plan: Plan) => void;
+}
 
-export const SubscriptionPlans: React.FC = () => {
+const columnHelper = createColumnHelper<Plan>();
+
+export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ plans, onUpdatePlan }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+
+  const columns = [
+    columnHelper.accessor('name', {
+      header: t('plan_name'),
+      cell: (info) => <div className="font-medium">{info.getValue()}</div>,
+    }),
+    columnHelper.accessor('price', {
+      header: t('price'),
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor('description', {
+        header: t('plan_description'),
+        cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor('features', {
+      header: t('features'),
+      cell: (info) => info.getValue().join(', '),
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: () => <div className="text-right">{t('actions')}</div>,
+      cell: (props) => (
+        <div className="text-right">
+          <Button variant="outline" size="sm" onClick={() => setEditingPlan(props.row.original)}>
+            Edit
+          </Button>
+        </div>
+      ),
+    }),
+  ];
+
+  const table = useReactTable({
+    data: plans,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t('plan_name')}</TableHead>
-            <TableHead>{t('price')}</TableHead>
-            <TableHead>{t('features')}</TableHead>
-            <TableHead className="text-right">{t('actions')}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {plans.map((plan) => (
-            <TableRow key={plan.name}>
-              <TableCell className="font-medium">{plan.name}</TableCell>
-              <TableCell>{plan.price}</TableCell>
-              <TableCell>{plan.features}</TableCell>
-              <TableCell className="text-right">
-                <Button variant="outline" size="sm">Edit</Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      {editingPlan && (
+        <EditPlanModal
+          plan={editingPlan}
+          onSave={(updatedPlan) => {
+            onUpdatePlan(updatedPlan);
+            setEditingPlan(null);
+          }}
+          onClose={() => setEditingPlan(null)}
+        />
+      )}
+    </>
   );
 };

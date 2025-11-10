@@ -15,6 +15,8 @@ import { Switch } from '@/components/ui/switch';
 const models = [
   { name: 'OpenAI GPT-4', status: 'Active', cost: '$0.03 / 1K tokens' },
   { name: 'Hugging Face Llama 3', status: 'Active', cost: '$0.01 / 1K tokens' },
+  { name: 'Claude 3 Sonnet', status: 'Active', cost: '$0.015 / 1K tokens' },
+  { name: 'DeepSeek Coder', status: 'Inactive', cost: '$0.008 / 1K tokens' },
   { name: 'Google Gemini Pro', status: 'Inactive', cost: '$0.02 / 1K tokens' },
 ];
 

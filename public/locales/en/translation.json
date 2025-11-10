@@ -70,6 +70,7 @@
     "billing": "Billing",
     "ai_settings": "AI Settings",
     "system": "System",
+    "site_content": "Site Content",
     "overview": "Overview",
     "total_users": "Total Users",
     "total_revenue": "Total Revenue",
@@ -102,6 +103,24 @@
     "settings": "Settings",
     "feature_flags": "Feature Flags",
     "maintenance_mode": "Maintenance Mode",
-    "enable_maintenance": "Enable Maintenance Mode"
+    "enable_maintenance": "Enable Maintenance Mode",
+    "manage_site_content": "Manage Site Content",
+    "edit_hero_section": "Edit Hero Section",
+    "hero_title": "Hero Title",
+    "hero_subtitle": "Hero Subtitle",
+    "edit_features_section": "Edit Features Section",
+    "feature_title": "Feature Title",
+    "feature_description": "Feature Description",
+    "manage_testimonials": "Manage Testimonials",
+    "add_testimonial": "Add Testimonial",
+    "edit_testimonial": "Edit Testimonial",
+    "testimonial_text": "Testimonial Text",
+    "author_name": "Author Name",
+    "author_role": "Author Role",
+    "edit_plan": "Edit Plan",
+    "plan_features": "Plan Features",
+    "add_feature": "Add Feature",
+    "save_changes": "Save Changes",
+    "plan_description": "Plan Description"
   }
 }

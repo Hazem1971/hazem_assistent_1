@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Link } from 'react-router-dom';
-import { BotMessageSquare, Home, Users, FileText, CreditCard, Cpu, Settings } from 'lucide-react';
+import { BotMessageSquare, Home, Users, FileText, CreditCard, Cpu, Settings, FileEdit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/admin/billing', icon: CreditCard, label: 'billing' },
   { to: '/admin/ai-settings', icon: Cpu, label: 'ai_settings' },
   { to: '/admin/system', icon: Settings, label: 'system' },
+  { to: '/admin/site-content', icon: FileEdit, label: 'site_content' },
 ];
 
 export const AdminSidebar: React.FC = () => {

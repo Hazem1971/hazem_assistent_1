@@ -70,6 +70,7 @@
     "billing": "الفواتير",
     "ai_settings": "إعدادات الذكاء الاصطناعي",
     "system": "النظام",
+    "site_content": "محتوى الموقع",
     "overview": "نظرة عامة",
     "total_users": "إجمالي المستخدمين",
     "total_revenue": "إجمالي الإيرادات",
@@ -102,6 +103,24 @@
     "settings": "الإعدادات",
     "feature_flags": "علامات الميزات",
     "maintenance_mode": "وضع الصيانة",
-    "enable_maintenance": "تفعيل وضع الصيانة"
+    "enable_maintenance": "تفعيل وضع الصيانة",
+    "manage_site_content": "إدارة محتوى الموقع",
+    "edit_hero_section": "تعديل قسم البداية",
+    "hero_title": "عنوان قسم البداية",
+    "hero_subtitle": "العنوان الفرعي للبداية",
+    "edit_features_section": "تعديل قسم الميزات",
+    "feature_title": "عنوان الميزة",
+    "feature_description": "وصف الميزة",
+    "manage_testimonials": "إدارة الشهادات",
+    "add_testimonial": "إضافة شهادة",
+    "edit_testimonial": "تعديل شهادة",
+    "testimonial_text": "نص الشهادة",
+    "author_name": "اسم المؤلف",
+    "author_role": "دور المؤلف",
+    "edit_plan": "تعديل الخطة",
+    "plan_features": "ميزات الخطة",
+    "add_feature": "إضافة ميزة",
+    "save_changes": "حفظ التغييرات",
+    "plan_description": "وصف الخطة"
   }
 }

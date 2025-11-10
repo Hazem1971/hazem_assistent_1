@@ -21,3 +21,29 @@ export interface AuthSession {
     user: UserProfile | null;
     loading: boolean;
 }
+
+export interface Plan {
+    id: string;
+    name: string;
+    price: string;
+    description: string;
+    features: string[];
+}
+
+export interface HeroContent {
+    title: string;
+    subtitle: string;
+}
+
+export interface FeatureContent {
+    id: string;
+    title: string;
+    description: string;
+}
+
+export interface TestimonialContent {
+    id: string;
+    text: string;
+    author: string;
+    role: string;
+}
