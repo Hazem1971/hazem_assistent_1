@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Globe, BotMessageSquare, LayoutDashboard, LogOut } from 'lucide-react';
+import { Globe, BotMessageSquare, LayoutDashboard, LogOut, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 
 export function Header() {
@@ -50,15 +50,23 @@ export function Header() {
           <nav className="flex items-center gap-2">
             {user ? (
               <>
+                {user.role === 'admin' && (
+                  <Button variant="secondary" size="sm" asChild>
+                    <Link to="/admin">
+                      <ShieldCheck className="me-2 h-4 w-4" />
+                      {t('nav.superAdmin')}
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/dashboard">
                     <LayoutDashboard className="me-2 h-4 w-4" />
-                    Dashboard
+                    {t('nav.dashboard')}
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>
                   <LogOut className="me-2 h-4 w-4" />
-                  {t('nav.login')}
+                  {t('nav.logout')}
                 </Button>
               </>
             ) : (

@@ -16,15 +16,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // --- Placeholder for Supabase Auth Listener ---
-    // This simulates checking for an existing session on app load.
-    // Once Supabase is connected, this will be replaced with `supabase.auth.onAuthStateChange`.
     console.log("Auth Provider: Checking for session (simulation)...");
     const checkSession = async () => {
-        // In a real app, you would use:
-        // const { data: { session } } = await supabase.auth.getSession();
-        // if (session) {
-        //     setUser({ id: session.user.id, email: session.user.email! });
-        // }
         setLoading(false);
     };
 
@@ -36,13 +29,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     loading,
     signIn: (email: string) => {
-      // This is a mock sign-in for demonstration purposes.
-      // It does not perform real authentication.
       console.log(`Simulating sign-in for ${email}`);
-      setUser({ id: 'mock-user-id', email });
+      const role = email === 'admin@marketing.com' ? 'admin' : 'user';
+      setUser({ id: 'mock-user-id', email, role });
     },
     signOut: () => {
-      // This is a mock sign-out.
       console.log("Simulating sign-out.");
       setUser(null);
     },

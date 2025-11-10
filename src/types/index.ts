@@ -14,6 +14,7 @@ export interface ToneAnalysisResult {
 export interface UserProfile {
     id: string;
     email: string;
+    role: 'admin' | 'user';
 }
 
 export interface AuthSession {
