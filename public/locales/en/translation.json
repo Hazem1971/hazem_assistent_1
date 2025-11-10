@@ -71,6 +71,7 @@
     "ai_settings": "AI Settings",
     "system": "System",
     "site_content": "Site Content",
+    "marketing": "Marketing",
     "overview": "Overview",
     "total_users": "Total Users",
     "total_revenue": "Total Revenue",
@@ -118,9 +119,23 @@
     "author_name": "Author Name",
     "author_role": "Author Role",
     "edit_plan": "Edit Plan",
+    "add_plan": "Add Plan",
+    "delete_plan": "Delete Plan",
     "plan_features": "Plan Features",
     "add_feature": "Add Feature",
     "save_changes": "Save Changes",
-    "plan_description": "Plan Description"
+    "plan_description": "Plan Description",
+    "manage_coupons": "Manage Coupons",
+    "create_coupon": "Create Coupon",
+    "edit_coupon": "Edit Coupon",
+    "coupon_code": "Coupon Code",
+    "discount": "Discount",
+    "discount_type": "Discount Type",
+    "discount_value": "Discount Value",
+    "percentage": "Percentage",
+    "fixed_amount": "Fixed Amount",
+    "expires_at": "Expires At",
+    "usage": "Usage",
+    "search_coupons": "Search coupons..."
   }
 }

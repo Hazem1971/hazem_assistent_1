@@ -16,6 +16,7 @@ import AdminBillingPage from './pages/admin/billing';
 import AdminAiSettingsPage from './pages/admin/ai-settings';
 import AdminSystemPage from './pages/admin/system';
 import AdminSiteContentPage from './pages/admin/site-content';
+import AdminMarketingPage from './pages/admin/marketing';
 
 function App() {
   useDirection();
@@ -55,6 +56,7 @@ function App() {
         <Route path="ai-settings" element={<AdminAiSettingsPage />} />
         <Route path="system" element={<AdminSystemPage />} />
         <Route path="site-content" element={<AdminSiteContentPage />} />
+        <Route path="marketing" element={<AdminMarketingPage />} />
       </Route>
     </Routes>
   );

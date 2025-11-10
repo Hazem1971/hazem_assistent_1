@@ -47,3 +47,14 @@ export interface TestimonialContent {
     author: string;
     role: string;
 }
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  expiresAt?: string; // ISO string for date input
+  usageCount: number;
+  usageLimit?: number;
+  isActive: boolean;
+}

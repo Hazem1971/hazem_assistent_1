@@ -71,6 +71,7 @@
     "ai_settings": "إعدادات الذكاء الاصطناعي",
     "system": "النظام",
     "site_content": "محتوى الموقع",
+    "marketing": "التسويق",
     "overview": "نظرة عامة",
     "total_users": "إجمالي المستخدمين",
     "total_revenue": "إجمالي الإيرادات",
@@ -118,9 +119,23 @@
     "author_name": "اسم المؤلف",
     "author_role": "دور المؤلف",
     "edit_plan": "تعديل الخطة",
+    "add_plan": "إضافة خطة",
+    "delete_plan": "حذف الخطة",
     "plan_features": "ميزات الخطة",
     "add_feature": "إضافة ميزة",
     "save_changes": "حفظ التغييرات",
-    "plan_description": "وصف الخطة"
+    "plan_description": "وصف الخطة",
+    "manage_coupons": "إدارة الكوبونات",
+    "create_coupon": "إنشاء كوبون",
+    "edit_coupon": "تعديل كوبون",
+    "coupon_code": "رمز الكوبون",
+    "discount": "الخصم",
+    "discount_type": "نوع الخصم",
+    "discount_value": "قيمة الخصم",
+    "percentage": "نسبة مئوية",
+    "fixed_amount": "مبلغ ثابت",
+    "expires_at": "تاريخ الانتهاء",
+    "usage": "الاستخدام",
+    "search_coupons": "ابحث عن كوبونات..."
   }
 }

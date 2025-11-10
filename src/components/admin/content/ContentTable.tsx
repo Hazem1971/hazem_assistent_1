@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Facebook, Youtube, VideoIcon } from 'lucide-react';
+import { MoreHorizontal, Facebook, Youtube, Video } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,7 +50,7 @@ const columnHelper = createColumnHelper<Content>();
 
 const platformIcons = {
   facebook: <Facebook className="h-5 w-5" />,
-  tiktok: <VideoIcon className="h-5 w-5" />,
+  tiktok: <Video className="h-5 w-5" />,
   youtube: <Youtube className="h-5 w-5" />,
 };
 
@@ -159,7 +159,7 @@ export const ContentTable: React.FC = () => {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

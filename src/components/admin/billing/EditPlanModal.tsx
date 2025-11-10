@@ -16,15 +16,16 @@ import { Plan } from '@/types';
 import { X, Plus } from 'lucide-react';
 
 interface EditPlanModalProps {
-  plan: Plan;
+  plan: Plan | null;
   onSave: (plan: Plan) => void;
   onClose: () => void;
 }
 
 export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onSave, onClose }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
+  const isEditing = !!plan;
   const { register, control, handleSubmit, formState: { errors } } = useForm<Plan>({
-    defaultValues: plan,
+    defaultValues: plan || { name: '', price: '', description: '', features: [''] },
   });
   const { fields, append, remove } = useFieldArray({
     control,
@@ -35,9 +36,9 @@ export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onSave, onCl
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>{t('edit_plan')}: {plan.name}</DialogTitle>
+          <DialogTitle>{isEditing ? t('edit_plan') : t('add_plan')}</DialogTitle>
           <DialogDescription>
-            Modify the details of this subscription plan.
+            {isEditing ? `Modify the details for the ${plan?.name} plan.` : 'Create a new subscription plan.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSave)}>
@@ -59,7 +60,7 @@ export const EditPlanModal: React.FC<EditPlanModalProps> = ({ plan, onSave, onCl
               <div className="col-span-3 space-y-2">
                 {fields.map((field, index) => (
                   <div key={field.id} className="flex items-center gap-2">
-                    <Input {...register(`features.${index}`)} />
+                    <Input {...register(`features.${index}` as const)} />
                     <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
                       <X className="h-4 w-4" />
                     </Button>

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GeneratedContent } from '@/types';
-import { Copy, Check, Facebook, Youtube, VideoIcon } from 'lucide-react';
+import { Copy, Check, Facebook, Youtube, Video } from 'lucide-react';
 
 interface ContentPreviewProps {
   content: GeneratedContent[];
@@ -12,7 +12,7 @@ interface ContentPreviewProps {
 
 const platformIcons: { [key: string]: React.ReactNode } = {
   facebook: <Facebook className="h-5 w-5" />,
-  tiktok: <VideoIcon className="h-5 w-5" />,
+  tiktok: <Video className="h-5 w-5" />,
   youtube: <Youtube className="h-5 w-5" />,
 };
 

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Sparkles, Facebook, Youtube } from 'lucide-react';
 import { GeneratedContent, Platform } from '@/types';
-import { VideoIcon } from 'lucide-react';
+import { Video } from 'lucide-react';
 
 type ContentGeneratorFormData = z.infer<typeof contentGeneratorSchema>;
 
@@ -20,7 +20,7 @@ interface ContentGeneratorProps {
 
 const platforms: { id: Platform; label: string; icon: React.ReactNode }[] = [
   { id: 'facebook', label: 'Facebook Post', icon: <Facebook className="h-5 w-5" /> },
-  { id: 'tiktok', label: 'TikTok Script', icon: <VideoIcon className="h-5 w-5" /> },
+  { id: 'tiktok', label: 'TikTok Script', icon: <Video className="h-5 w-5" /> },
   { id: 'youtube', label: 'YouTube Shorts Script', icon: <Youtube className="h-5 w-5" /> },
 ];
 
