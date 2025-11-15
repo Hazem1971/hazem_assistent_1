@@ -1,25 +1,17 @@
+import { User } from "@supabase/supabase-js";
+
 export type Platform = 'facebook' | 'tiktok' | 'youtube';
 
-export interface GeneratedContent {
+export interface Profile extends User {
   id: string;
-  platform: Platform;
-  text: string;
-  createdAt: string;
-}
-
-export interface ToneAnalysisResult {
-    tone: string;
-    keywords: string[];
-}
-
-export interface UserProfile {
-    id: string;
-    email: string;
-    role: 'admin' | 'user';
+  full_name: string | null;
+  company: string | null;
+  role: 'admin' | 'user';
+  subscription_plan: string | null;
 }
 
 export interface AuthSession {
-    user: UserProfile | null;
+    user: Profile | null;
     loading: boolean;
 }
 
@@ -29,6 +21,14 @@ export interface Plan {
     price: string;
     description: string;
     features: string[];
+    created_at: string;
+}
+
+export interface SiteContent {
+    id?: number;
+    content_key: string;
+    content_value: any;
+    created_at?: string;
 }
 
 export interface HeroContent {
@@ -52,25 +52,49 @@ export interface TestimonialContent {
 export interface Coupon {
   id: string;
   code: string;
-  discountType: 'percentage' | 'fixed';
-  discountValue: number;
-  expiresAt?: string; // ISO string for date input
-  usageCount: number;
-  usageLimit?: number;
-  isActive: boolean;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  expires_at?: string | null;
+  usage_count: number;
+  usage_limit?: number | null;
+  is_active: boolean;
+  created_at: string;
 }
 
-export interface BillingInvoice {
+export interface GeneratedContent {
   id: string;
-  date: string;
-  amount: number;
-  url: string;
+  user_id: string;
+  platform: Platform;
+  text: string;
+  created_at: string;
+}
+
+export interface BrandVoice {
+  id: string;
+  user_id: string;
+  name: string;
+  tone: string;
+  created_at: string;
 }
 
 export interface ApiKey {
   id: string;
+  user_id: string;
   name: string;
   key: string;
-  createdAt: string;
-  lastUsed: string | null;
+  created_at: string;
+  last_used_at: string | null;
+}
+
+export interface BillingInvoice {
+  id: string;
+  user_id: string;
+  amount: number;
+  invoice_url: string;
+  created_at: string;
+}
+
+export interface ToneAnalysisResult {
+    tone: string;
+    keywords: string[];
 }

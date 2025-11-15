@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import {
   createColumnHelper,
   flexRender,
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,39 +30,76 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { faker } from '@faker-js/faker';
 import { Coupon } from '@/types';
 import { CouponFormModal } from './CouponFormModal';
-
-const mockCoupons: Coupon[] = [
-  { id: '1', code: 'BLACKFRIDAY20', discountType: 'percentage', discountValue: 20, usageCount: 45, usageLimit: 100, isActive: true, expiresAt: '2025-11-30' },
-  { id: '2', code: 'WELCOME10', discountType: 'fixed', discountValue: 10, usageCount: 152, isActive: true },
-  { id: '3', code: 'EXPIRED', discountType: 'percentage', discountValue: 50, usageCount: 10, usageLimit: 10, isActive: false, expiresAt: '2024-01-01' },
-];
+import { supabase } from '@/lib/supabase';
 
 const columnHelper = createColumnHelper<Coupon>();
 
 export const CouponsManager: React.FC = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
-  const [coupons, setCoupons] = useState<Coupon[]>(mockCoupons);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
 
-  const handleSaveCoupon = (couponToSave: Coupon) => {
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from('coupons').select('*').order('created_at');
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setCoupons(data);
+      }
+      setLoading(false);
+    };
+    fetchCoupons();
+  }, []);
+
+  const handleSaveCoupon = async (couponToSave: Coupon) => {
     if (couponToSave.id) {
-      setCoupons(coupons.map(c => c.id === couponToSave.id ? couponToSave : c));
+      const { data, error } = await supabase
+        .from('coupons')
+        .update({ ...couponToSave, id: undefined, created_at: undefined })
+        .eq('id', couponToSave.id)
+        .select()
+        .single();
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setCoupons(coupons.map(c => c.id === data.id ? data : c));
+        toast.success('Coupon updated!');
+      }
     } else {
-      const newCoupon = { ...couponToSave, id: faker.string.uuid(), usageCount: 0, isActive: true };
-      setCoupons([...coupons, newCoupon]);
+      const { data, error } = await supabase
+        .from('coupons')
+        .insert(couponToSave)
+        .select()
+        .single();
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setCoupons([...coupons, data]);
+        toast.success('Coupon created!');
+      }
     }
     setIsModalOpen(false);
     setEditingCoupon(null);
   };
 
-  const handleDeleteCoupon = (couponId: string) => {
-    setCoupons(coupons.filter(c => c.id !== couponId));
+  const handleDeleteCoupon = async (couponId: string) => {
+    if (window.confirm('Are you sure you want to delete this coupon?')) {
+      const { error } = await supabase.from('coupons').delete().eq('id', couponId);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setCoupons(coupons.filter(c => c.id !== couponId));
+        toast.success('Coupon deleted!');
+      }
+    }
   };
   
   const handleOpenModal = (coupon: Coupon | null) => {
@@ -71,10 +109,10 @@ export const CouponsManager: React.FC = () => {
 
   const columns = [
     columnHelper.accessor('code', { header: t('coupon_code'), cell: info => <Badge variant="outline">{info.getValue()}</Badge> }),
-    columnHelper.accessor(row => `${row.discountValue}${row.discountType === 'percentage' ? '%' : '$'}`, { id: 'discount', header: t('discount') }),
-    columnHelper.accessor('isActive', { header: t('status'), cell: info => <Badge variant={info.getValue() ? 'default' : 'destructive'}>{info.getValue() ? t('active') : t('inactive')}</Badge> }),
-    columnHelper.accessor(row => `${row.usageCount}${row.usageLimit ? `/${row.usageLimit}` : ''}`, { id: 'usage', header: t('usage') }),
-    columnHelper.accessor('expiresAt', { header: t('expires_at'), cell: info => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString() : 'Never' }),
+    columnHelper.accessor(row => `${row.discount_value}${row.discount_type === 'percentage' ? '%' : '$'}`, { id: 'discount', header: t('discount') }),
+    columnHelper.accessor('is_active', { header: t('status'), cell: info => <Badge variant={info.getValue() ? 'default' : 'destructive'}>{info.getValue() ? t('active') : t('inactive')}</Badge> }),
+    columnHelper.accessor(row => `${row.usage_count}${row.usage_limit ? `/${row.usage_limit}` : ''}`, { id: 'usage', header: t('usage') }),
+    columnHelper.accessor('expires_at', { header: t('expires_at'), cell: info => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString() : 'Never' }),
     columnHelper.display({
       id: 'actions',
       cell: ({ row }) => (
@@ -134,7 +172,13 @@ export const CouponsManager: React.FC = () => {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
@@ -147,7 +191,7 @@ export const CouponsManager: React.FC = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  No coupons found.
                 </TableCell>
               </TableRow>
             )}

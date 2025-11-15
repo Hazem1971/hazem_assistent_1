@@ -1,66 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { HeroEditor } from '@/components/admin/site-content/HeroEditor';
 import { FeaturesEditor } from '@/components/admin/site-content/FeaturesEditor';
 import { TestimonialsEditor } from '@/components/admin/site-content/TestimonialsEditor';
 import { HeroContent, FeatureContent, TestimonialContent } from '@/types';
-import { faker } from '@faker-js/faker';
-
-const initialHero: HeroContent = { 
-  title: 'Generate Viral Social Media Content with AI', 
-  subtitle: "Stop guessing. Start growing. Our AI analyzes your brand's voice to create posts, and scripts that resonate with your audience in any language."
-};
-
-const initialFeatures: FeatureContent[] = [
-  { id: 'f1', title: 'Brand Voice Analysis', description: "Import posts or link your Facebook page. Our AI learns your unique tone." },
-  { id: 'f2', title: 'Multi-Platform Content', description: "Get tailored content for Facebook, TikTok, and YouTube in one click." },
-  { id: 'f3', title: 'Multilingual Magic', description: "Primary support for Arabic (RTL) and English. Reach a global audience." },
-  { id: 'f4', title: 'Video Scripts', description: "Generate engaging 30-60 second video scripts for TikTok and YouTube Shorts." },
-];
-
-const initialTestimonials: TestimonialContent[] = [
-    { id: 't1', text: '"Marketing AI transformed our content strategy. Our engagement in Arabic has skyrocketed!"', author: 'Fatima Al-Jamil', role: 'Coffee Shop Owner' },
-    { id: 't2', text: `"I save hours every week. The AI just gets my brand's humor and style perfectly."`, author: 'Youssef Hassan', role: 'Burger Shop Marketer' },
-];
-
+import { supabase } from '@/lib/supabase';
+import { Loader2 } from 'lucide-react';
 
 const AdminSiteContentPage: React.FC = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
-  const [heroContent, setHeroContent] = useState<HeroContent>(initialHero);
-  const [features, setFeatures] = useState<FeatureContent[]>(initialFeatures);
-  const [testimonials, setTestimonials] = useState<TestimonialContent[]>(initialTestimonials);
+  const [loading, setLoading] = useState(true);
+  const [heroContent, setHeroContent] = useState<HeroContent | null>(null);
+  const [features, setFeatures] = useState<FeatureContent[]>([]);
+  const [testimonials, setTestimonials] = useState<TestimonialContent[]>([]);
 
-  const handleUpdateHero = (data: HeroContent) => {
+  useEffect(() => {
+    const fetchContent = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from('site_content').select('*');
+      if (error) {
+        toast.error(error.message);
+      } else {
+        const contentMap = new Map(data.map(item => [item.content_key, item.content_value]));
+        setHeroContent(contentMap.get('hero') || { title: '', subtitle: '' });
+        setFeatures(contentMap.get('features') || []);
+        setTestimonials(contentMap.get('testimonials') || []);
+      }
+      setLoading(false);
+    };
+    fetchContent();
+  }, []);
+
+  const saveContent = async (key: string, value: any) => {
+    const { error } = await supabase
+      .from('site_content')
+      .upsert({ content_key: key, content_value: value }, { onConflict: 'content_key' });
+    
+    if (error) {
+      toast.error(`Failed to save ${key}: ${error.message}`);
+    } else {
+      toast.success(`${key.charAt(0).toUpperCase() + key.slice(1)} content saved!`);
+    }
+  };
+
+  const handleUpdateHero = async (data: HeroContent) => {
     setHeroContent(data);
-    console.log("Updated Hero:", data);
+    await saveContent('hero', data);
   };
 
-  const handleUpdateFeature = (updatedFeature: FeatureContent) => {
-    setFeatures(features.map(f => f.id === updatedFeature.id ? updatedFeature : f));
-    console.log("Updated Feature:", updatedFeature);
+  const handleUpdateFeature = async (updatedFeature: FeatureContent) => {
+    const newFeatures = features.map(f => f.id === updatedFeature.id ? updatedFeature : f);
+    setFeatures(newFeatures);
+    await saveContent('features', newFeatures);
   };
 
-  const handleUpdateTestimonial = (updatedTestimonial: TestimonialContent) => {
-    setTestimonials(testimonials.map(t => t.id === updatedTestimonial.id ? updatedTestimonial : t));
-    console.log("Updated Testimonial:", updatedTestimonial);
+  const handleAddTestimonial = async (newTestimonial: Omit<TestimonialContent, 'id'>) => {
+    const testimonialWithId = { ...newTestimonial, id: crypto.randomUUID() };
+    const newTestimonials = [...testimonials, testimonialWithId];
+    setTestimonials(newTestimonials);
+    await saveContent('testimonials', newTestimonials);
+  };
+  
+  const handleUpdateTestimonial = async (updatedTestimonial: TestimonialContent) => {
+    const newTestimonials = testimonials.map(t => t.id === updatedTestimonial.id ? updatedTestimonial : t);
+    setTestimonials(newTestimonials);
+    await saveContent('testimonials', newTestimonials);
   };
 
-  const handleAddTestimonial = (newTestimonial: Omit<TestimonialContent, 'id'>) => {
-    const testimonialWithId = { ...newTestimonial, id: faker.string.uuid() };
-    setTestimonials([...testimonials, testimonialWithId]);
-    console.log("Added Testimonial:", testimonialWithId);
+  const handleDeleteTestimonial = async (testimonialId: string) => {
+    if (window.confirm('Are you sure you want to delete this testimonial?')) {
+      const newTestimonials = testimonials.filter(t => t.id !== testimonialId);
+      setTestimonials(newTestimonials);
+      await saveContent('testimonials', newTestimonials);
+    }
   };
 
-  const handleDeleteTestimonial = (testimonialId: string) => {
-    setTestimonials(testimonials.filter(t => t.id !== testimonialId));
-    console.log("Deleted Testimonial ID:", testimonialId);
-  };
+  if (loading) {
+    return <div className="flex justify-center items-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold">{t('manage_site_content')}</h1>
-      <HeroEditor content={heroContent} onSave={handleUpdateHero} />
-      <FeaturesEditor features={features} onSaveFeature={handleUpdateFeature} />
+      {heroContent && <HeroEditor content={heroContent} onSave={handleUpdateHero} />}
+      {features.length > 0 && <FeaturesEditor features={features} onSaveFeature={handleUpdateFeature} />}
       <TestimonialsEditor 
         testimonials={testimonials}
         onAdd={handleAddTestimonial}

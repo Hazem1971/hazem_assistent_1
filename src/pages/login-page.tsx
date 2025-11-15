@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import ReCAPTCHA from "react-google-recaptcha"
+import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +15,6 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   
   const navigate = useNavigate();
@@ -28,22 +28,19 @@ export function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!captchaToken) {
-      setError("Please complete the reCAPTCHA.");
+      toast.error("Please complete the reCAPTCHA.");
       return;
     }
     setLoading(true);
-    setError(null);
 
-    // --- Placeholder for Supabase Auth ---
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (email && password) {
-       auth.signIn(email); // Mock sign-in
-       navigate(from, { replace: true });
+    const { error } = await auth.signIn({ email, password });
+
+    if (error) {
+      toast.error(error.message);
     } else {
-       setError("Invalid credentials. This is a demo.");
+      toast.success("Logged in successfully!");
+      navigate(from, { replace: true });
     }
-    // --- End of Placeholder ---
 
     setLoading(false);
     recaptchaRef.current?.reset();
@@ -51,20 +48,24 @@ export function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    // --- Placeholder for Supabase Google Auth ---
-    console.log("Simulating Google login. Connect Supabase to enable.");
-    setError("Google login is a placeholder. Connect Supabase to enable.");
+    setLoading(true);
+    const { error } = await auth.signInWithGoogle();
+    if (error) {
+      toast.error(error.message);
+      setLoading(false);
+    }
   };
 
-  const handleQuickLogin = (quickEmail: string) => {
+  const handleQuickLogin = async (quickEmail: string, quickPass: string) => {
     setLoading(true);
-    setError(null);
-    // Simulate a short delay for UX
-    setTimeout(() => {
-      auth.signIn(quickEmail);
+    const { error } = await auth.signIn({ email: quickEmail, password: quickPass });
+     if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Logged in successfully!");
       navigate(from, { replace: true });
-      setLoading(false);
-    }, 500);
+    }
+    setLoading(false);
   };
 
   return (
@@ -126,7 +127,6 @@ export function LoginPage() {
                 <p className="text-sm text-yellow-500">reCAPTCHA is not configured.</p>
             )}
         </div>
-        {error && <p className="text-sm text-destructive">{error}</p>}
         <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
           {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
           Log in
@@ -151,12 +151,12 @@ export function LoginPage() {
             </div>
         </div>
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Button variant="secondary" onClick={() => handleQuickLogin('admin@marketing.com')} disabled={loading}>
-                {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+            <Button variant="secondary" onClick={() => handleQuickLogin('admin@marketing.com', '123456789')} disabled={loading}>
+                {loading && email === 'admin@marketing.com' && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 Login as Admin
             </Button>
-            <Button variant="secondary" onClick={() => handleQuickLogin('user@marketing.com')} disabled={loading}>
-                {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+            <Button variant="secondary" onClick={() => handleQuickLogin('user@marketing.com', '123456')} disabled={loading}>
+                {loading && email === 'user@marketing.com' && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 Login as User
             </Button>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react"
-import { Link, useNavigate, useLocation } from "react-router-dom"
+import { Link } from "react-router-dom"
 import ReCAPTCHA from "react-google-recaptcha"
+import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,39 +15,38 @@ export function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   
   const recaptchaRef = React.createRef<ReCAPTCHA>();
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
   
-  const navigate = useNavigate();
-  const location = useLocation();
   const auth = useAuth();
-  const from = location.state?.from?.pathname || "/dashboard";
-
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!captchaToken) {
-      setError("Please complete the reCAPTCHA.");
+      toast.error("Please complete the reCAPTCHA.");
       return;
     }
     setLoading(true);
-    setError(null);
-    setSuccess(false);
 
-    // --- Placeholder for Supabase Auth ---
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (password.length < 6) {
-        setError("Password should be at least 6 characters.");
+    const { data, error } = await auth.signUp({ 
+      email, 
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      }
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else if (data.user && data.user.identities?.length === 0) {
+      toast.error("This user already exists. Please log in.");
     } else {
-        setSuccess(true);
-        console.log("Simulated successful signup");
+      toast.success("Confirmation email sent! Please check your inbox.");
+      setSuccess(true);
     }
-    // --- End of Placeholder ---
 
     setLoading(false);
     recaptchaRef.current?.reset();
@@ -54,20 +54,12 @@ export function SignupPage() {
   };
 
   const handleGoogleSignup = async () => {
-    // --- Placeholder for Supabase Google Auth ---
-    console.log("Simulating Google signup. Connect Supabase to enable.");
-    setError("Google signup is a placeholder. Connect Supabase to enable.");
-  };
-
-  const handleQuickLogin = (quickEmail: string) => {
     setLoading(true);
-    setError(null);
-    // Simulate a short delay for UX
-    setTimeout(() => {
-      auth.signIn(quickEmail);
-      navigate(from, { replace: true });
+    const { error } = await auth.signInWithGoogle();
+    if (error) {
+      toast.error(error.message);
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -120,6 +112,7 @@ export function SignupPage() {
                 id="password" 
                 type="password" 
                 required 
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
@@ -137,7 +130,6 @@ export function SignupPage() {
                     <p className="text-sm text-yellow-500">reCAPTCHA is not configured.</p>
                 )}
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
               {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               Create account
@@ -148,29 +140,6 @@ export function SignupPage() {
             <Link to="/login" className="underline">
               Log in
             </Link>
-          </div>
-
-          <div className="mt-6 pt-6 border-t">
-            <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t"></span>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                    Quick Logins (for Demo)
-                    </span>
-                </div>
-            </div>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Button variant="secondary" onClick={() => handleQuickLogin('admin@marketing.com')} disabled={loading}>
-                    {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                    Login as Admin
-                </Button>
-                <Button variant="secondary" onClick={() => handleQuickLogin('user@marketing.com')} disabled={loading}>
-                    {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                    Login as User
-                </Button>
-            </div>
           </div>
         </>
       )}

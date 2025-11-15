@@ -1,50 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Copy, Plus, Trash } from 'lucide-react';
-import { faker } from '@faker-js/faker';
+import { Copy, Plus, Trash, Loader2 } from 'lucide-react';
 import { ApiKey } from '@/types';
-
-const mockApiKeys: ApiKey[] = [
-  {
-    id: faker.string.uuid(),
-    name: 'My Main App',
-    key: `mai_...${faker.string.alphanumeric(8)}`,
-    createdAt: faker.date.past().toLocaleDateString(),
-    lastUsed: faker.date.recent().toLocaleDateString(),
-  },
-  {
-    id: faker.string.uuid(),
-    name: 'Test Integration',
-    key: `mai_...${faker.string.alphanumeric(8)}`,
-    createdAt: faker.date.past().toLocaleDateString(),
-    lastUsed: null,
-  },
-];
+import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/lib/supabase';
 
 export const ApiKeysTab: React.FC = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'account' });
-  const [keys, setKeys] = useState(mockApiKeys);
+  const { user } = useAuth();
+  const [keys, setKeys] = useState<ApiKey[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newKeyName, setNewKeyName] = useState('');
+  const [generating, setGenerating] = useState(false);
 
-  const generateKey = () => {
-    if (!newKeyName) return;
-    const newKey: ApiKey = {
-      id: faker.string.uuid(),
-      name: newKeyName,
-      key: `mai_...${faker.string.alphanumeric(8)}`,
-      createdAt: new Date().toLocaleDateString(),
-      lastUsed: null,
+  useEffect(() => {
+    const fetchKeys = async () => {
+      if (!user) return;
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setKeys(data);
+      }
+      setLoading(false);
     };
-    setKeys([newKey, ...keys]);
-    setNewKeyName('');
+    fetchKeys();
+  }, [user]);
+
+  const generateKey = async () => {
+    if (!newKeyName || !user) return;
+    setGenerating(true);
+    
+    // In a real app, this key would be generated securely on the backend.
+    const newKeyValue = `mai_${crypto.randomUUID().replace(/-/g, '')}`;
+
+    const { data, error } = await supabase
+      .from('api_keys')
+      .insert({ name: newKeyName, user_id: user.id, key: newKeyValue })
+      .select()
+      .single();
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setKeys([data, ...keys]);
+      setNewKeyName('');
+      toast.success('API Key generated! Copy it now, you won\'t see it again.');
+    }
+    setGenerating(false);
   };
 
-  const revokeKey = (id: string) => {
-    setKeys(keys.filter(key => key.id !== id));
+  const revokeKey = async (id: string) => {
+    if (window.confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) {
+      const { error } = await supabase.from('api_keys').delete().eq('id', id);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setKeys(keys.filter(key => key.id !== id));
+        toast.success('API Key revoked.');
+      }
+    }
+  };
+
+  const handleCopy = (key: string) => {
+    navigator.clipboard.writeText(key);
+    toast.success('API Key copied to clipboard!');
   };
 
   return (
@@ -61,9 +92,11 @@ export const ApiKeysTab: React.FC = () => {
               placeholder={t('api_key_name')} 
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
+              disabled={generating}
             />
-            <Button onClick={generateKey}>
-              <Plus className="mr-2 h-4 w-4" /> Generate
+            <Button onClick={generateKey} disabled={generating || !newKeyName}>
+              {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+              Generate
             </Button>
           </div>
         </CardContent>
@@ -85,22 +118,34 @@ export const ApiKeysTab: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {keys.map((apiKey) => (
-                <TableRow key={apiKey.id}>
-                  <TableCell className="font-medium">{apiKey.name}</TableCell>
-                  <TableCell className="font-mono flex items-center gap-2">
-                    {apiKey.key}
-                    <Button variant="ghost" size="icon" className="h-7 w-7"><Copy className="h-4 w-4" /></Button>
-                  </TableCell>
-                  <TableCell>{apiKey.lastUsed || 'Never'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="destructive" size="sm" onClick={() => revokeKey(apiKey.id)}>
-                      <Trash className="mr-2 h-4 w-4" />
-                      {t('revoke')}
-                    </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin" />
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : keys.length > 0 ? (
+                keys.map((apiKey) => (
+                  <TableRow key={apiKey.id}>
+                    <TableCell className="font-medium">{apiKey.name}</TableCell>
+                    <TableCell className="font-mono flex items-center gap-2">
+                      {`mai_...${apiKey.key.slice(-8)}`}
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(apiKey.key)}><Copy className="h-4 w-4" /></Button>
+                    </TableCell>
+                    <TableCell>{apiKey.last_used_at ? new Date(apiKey.last_used_at).toLocaleDateString() : 'Never'}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="destructive" size="sm" onClick={() => revokeKey(apiKey.id)}>
+                        <Trash className="mr-2 h-4 w-4" />
+                        {t('revoke')}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">No API keys generated yet.</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

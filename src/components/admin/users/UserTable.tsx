@@ -29,25 +29,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { faker } from '@faker-js/faker';
+import { Profile } from '@/types';
 
-type User = {
-  id: string;
-  email: string;
-  role: 'admin' | 'user';
-  subscription: 'Free' | 'Pro' | 'Enterprise';
-  joined: Date;
-};
+interface UserTableProps {
+  users: Profile[];
+}
 
-const mockUsers: User[] = Array.from({ length: 50 }, () => ({
-  id: faker.string.uuid(),
-  email: faker.internet.email(),
-  role: faker.helpers.arrayElement(['user', 'admin']),
-  subscription: faker.helpers.arrayElement(['Free', 'Pro', 'Enterprise']),
-  joined: faker.date.past(),
-}));
-
-const columnHelper = createColumnHelper<User>();
+const columnHelper = createColumnHelper<Profile>();
 
 const columns = [
   columnHelper.accessor('email', {
@@ -58,13 +46,13 @@ const columns = [
     header: 'Role',
     cell: (info) => <Badge variant={info.getValue() === 'admin' ? 'default' : 'secondary'}>{info.getValue()}</Badge>,
   }),
-  columnHelper.accessor('subscription', {
+  columnHelper.accessor('subscription_plan', {
     header: 'Subscription',
-    cell: (info) => info.getValue(),
+    cell: (info) => info.getValue() || 'Free',
   }),
-  columnHelper.accessor('joined', {
+  columnHelper.accessor('created_at', {
     header: 'Joined',
-    cell: (info) => info.getValue().toLocaleDateString(),
+    cell: (info) => new Date(info.getValue()).toLocaleDateString(),
   }),
   columnHelper.display({
     id: 'actions',
@@ -87,9 +75,9 @@ const columns = [
   }),
 ];
 
-export const UserTable: React.FC = () => {
+export const UserTable: React.FC<UserTableProps> = ({ users }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
-  const [data] = React.useState(() => [...mockUsers]);
+  const [data] = React.useState(() => [...users]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
 

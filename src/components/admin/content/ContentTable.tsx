@@ -28,25 +28,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { faker } from '@faker-js/faker';
+import { GeneratedContent } from '@/types';
 
-type Content = {
-  id: string;
-  platform: 'facebook' | 'tiktok' | 'youtube';
-  author: string;
-  generatedOn: Date;
-  content: string;
-};
+interface ContentTableProps {
+  content: (GeneratedContent & { author: string })[];
+  onDelete: (id: string) => void;
+}
 
-const mockContent: Content[] = Array.from({ length: 50 }, () => ({
-  id: faker.string.uuid(),
-  platform: faker.helpers.arrayElement(['facebook', 'tiktok', 'youtube']),
-  author: faker.internet.email(),
-  generatedOn: faker.date.past(),
-  content: faker.lorem.sentence(),
-}));
-
-const columnHelper = createColumnHelper<Content>();
+const columnHelper = createColumnHelper<GeneratedContent & { author: string }>();
 
 const platformIcons = {
   facebook: <Facebook className="h-5 w-5" />,
@@ -54,57 +43,56 @@ const platformIcons = {
   youtube: <Youtube className="h-5 w-5" />,
 };
 
-const columns = [
-  columnHelper.accessor('platform', {
-    header: 'Platform',
-    cell: (info) => (
-      <div className="flex items-center gap-2">
-        {platformIcons[info.getValue()]}
-        <span className="capitalize">{info.getValue()}</span>
-      </div>
-    ),
-  }),
-  columnHelper.accessor('author', {
-    header: 'Author',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('content', {
-    header: 'Content',
-    cell: (info) => <p className="truncate max-w-xs">{info.getValue()}</p>,
-  }),
-  columnHelper.accessor('generatedOn', {
-    header: 'Generated On',
-    cell: (info) => info.getValue().toLocaleDateString(),
-  }),
-  columnHelper.display({
-    id: 'actions',
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem>View content</DropdownMenuItem>
-          <DropdownMenuItem>Moderate</DropdownMenuItem>
-          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  }),
-];
-
-export const ContentTable: React.FC = () => {
+export const ContentTable: React.FC<ContentTableProps> = ({ content, onDelete }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
-  const [data] = React.useState(() => [...mockContent]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
 
+  const columns = [
+    columnHelper.accessor('platform', {
+      header: 'Platform',
+      cell: (info) => (
+        <div className="flex items-center gap-2">
+          {platformIcons[info.getValue()]}
+          <span className="capitalize">{info.getValue()}</span>
+        </div>
+      ),
+    }),
+    columnHelper.accessor('author', {
+      header: 'Author',
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor('text', {
+      header: 'Content',
+      cell: (info) => <p className="truncate max-w-xs">{info.getValue()}</p>,
+    }),
+    columnHelper.accessor('created_at', {
+      header: 'Generated On',
+      cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+    }),
+    columnHelper.display({
+      id: 'actions',
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem>View content</DropdownMenuItem>
+            <DropdownMenuItem>Moderate</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive" onClick={() => onDelete(row.original.id)}>Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    }),
+  ];
+
   const table = useReactTable({
-    data,
+    data: content,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

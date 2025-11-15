@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import {
   createColumnHelper,
   flexRender,
@@ -14,18 +15,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Plus, Facebook, Youtube, Video } from 'lucide-react';
+import { MoreHorizontal, Plus, Facebook, Youtube, Video, Loader2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { faker } from '@faker-js/faker';
 import { GeneratedContent, Platform } from '@/types';
 import { EditContentModal } from './edit-content-modal';
-
-const mockContent: GeneratedContent[] = Array.from({ length: 20 }, () => ({
-  id: faker.string.uuid(),
-  platform: faker.helpers.arrayElement(['facebook', 'tiktok', 'youtube']),
-  text: faker.lorem.sentence(),
-  createdAt: faker.date.past().toISOString(),
-}));
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/use-auth';
 
 const platformIcons: { [key in Platform]: React.ReactNode } = {
   facebook: <Facebook className="h-5 w-5 text-blue-600" />,
@@ -37,24 +32,74 @@ const columnHelper = createColumnHelper<GeneratedContent>();
 
 export const SavedContentTab: React.FC = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'account' });
-  const [data, setData] = useState<GeneratedContent[]>(mockContent);
+  const { user } = useAuth();
+  const [data, setData] = useState<GeneratedContent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<GeneratedContent | null>(null);
 
-  const handleSave = (content: GeneratedContent) => {
-    if (content.id && data.some(item => item.id === content.id)) {
-      setData(data.map(item => item.id === content.id ? content : item));
-    } else {
-      setData([{ ...content, id: faker.string.uuid(), createdAt: new Date().toISOString() }, ...data]);
+  useEffect(() => {
+    const fetchContent = async () => {
+      if (!user) return;
+      setLoading(true);
+      const { data: content, error } = await supabase
+        .from('generated_content')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setData(content);
+      }
+      setLoading(false);
+    };
+    fetchContent();
+  }, [user]);
+
+  const handleSave = async (content: GeneratedContent) => {
+    if (content.id) { // Editing existing content
+      const { data: updatedContent, error } = await supabase
+        .from('generated_content')
+        .update({ text: content.text, platform: content.platform })
+        .eq('id', content.id)
+        .select()
+        .single();
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setData(data.map(item => item.id === content.id ? updatedContent : item));
+        toast.success('Content updated!');
+      }
+    } else { // Creating new content
+      if (!user) return;
+      const { data: newContent, error } = await supabase
+        .from('generated_content')
+        .insert({ ...content, user_id: user.id })
+        .select()
+        .single();
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setData([newContent, ...data]);
+        toast.success('Content created!');
+      }
     }
     setIsModalOpen(false);
     setEditingContent(null);
   };
 
-  const handleDelete = (id: string) => {
-    setData(data.filter(item => item.id !== id));
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('generated_content').delete().eq('id', id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setData(data.filter(item => item.id !== id));
+      toast.success('Content deleted!');
+    }
   };
   
   const columns = [
@@ -71,7 +116,7 @@ export const SavedContentTab: React.FC = () => {
       header: t('content'),
       cell: (info) => <p className="truncate max-w-md">{info.getValue()}</p>,
     }),
-    columnHelper.accessor('createdAt', {
+    columnHelper.accessor('created_at', {
       header: t('created_at'),
       cell: (info) => new Date(info.getValue()).toLocaleDateString(),
     }),
@@ -144,7 +189,13 @@ export const SavedContentTab: React.FC = () => {
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows?.length ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                    </TableCell>
+                  </TableRow>
+                ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (

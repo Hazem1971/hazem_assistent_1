@@ -1,43 +1,73 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { AuthSession, UserProfile } from '@/types';
-import { Session } from '@supabase/supabase-js';
+import { AuthSession, Profile } from '@/types';
+import { AuthError, AuthResponse, GoTrueAdminApi, Session, User, UserAttributes, UserCredentials } from '@supabase/supabase-js';
 
 export const AuthContext = createContext<
   (AuthSession & {
-    signIn: (email: string) => void;
-    signOut: () => void;
+    signIn: (credentials: UserCredentials) => Promise<AuthResponse>;
+    signUp: (credentials: UserCredentials) => Promise<AuthResponse>;
+    signOut: () => Promise<{ error: AuthError | null }>;
+    signInWithGoogle: () => Promise<AuthResponse>;
+    updateUser: (attributes: UserAttributes) => Promise<AuthResponse>;
   }) | undefined
 >(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // --- Placeholder for Supabase Auth Listener ---
-    console.log("Auth Provider: Checking for session (simulation)...");
-    const checkSession = async () => {
-        setLoading(false);
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        setUser(profile ? { ...session.user, ...profile } as Profile : null);
+      }
+      setLoading(false);
     };
+    
+    getSession();
 
-    checkSession();
-    // --- End of Placeholder ---
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          setUser(profile ? { ...session.user, ...profile } as Profile : null);
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value = {
     user,
     loading,
-    signIn: (email: string) => {
-      console.log(`Simulating sign-in for ${email}`);
-      const role = email === 'admin@marketing.com' ? 'admin' : 'user';
-      setUser({ id: 'mock-user-id', email, role });
-    },
-    signOut: () => {
-      console.log("Simulating sign-out.");
-      setUser(null);
-    },
+    signIn: (credentials: UserCredentials) => supabase.auth.signInWithPassword(credentials),
+    signUp: (credentials: UserCredentials) => supabase.auth.signUp(credentials),
+    signOut: () => supabase.auth.signOut(),
+    signInWithGoogle: () => supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    }),
+    updateUser: (attributes: UserAttributes) => supabase.auth.updateUser(attributes),
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };
