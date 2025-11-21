@@ -10,10 +10,17 @@ export interface Profile extends User {
   subscription_plan: string | null;
   email?: string;
   created_at: string;
-  // New fields
   subscription_status?: 'active' | 'inactive' | 'pending';
   plan_id?: string;
   payment_date?: string;
+  app_metadata?: {
+    provider?: string;
+    providers?: string[];
+    [key: string]: any;
+  };
+  user_metadata?: {
+    [key: string]: any;
+  };
 }
 
 export interface AuthSession {
@@ -103,4 +110,14 @@ export interface BillingInvoice {
 export interface ToneAnalysisResult {
     tone: string;
     keywords: string[];
+}
+
+export interface AIProvider {
+  id: string;
+  provider_name: string;
+  api_key: string;
+  model_name: string;
+  is_active: boolean;
+  base_url: string;
+  updated_at: string;
 }

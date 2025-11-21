@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Wand2 } from 'lucide-react';
 import { ToneAnalysisResult } from '@/types';
+import { analyzeTone } from '@/lib/ai-service';
+import toast from 'react-hot-toast';
 
 type ToneAnalysisFormData = z.infer<typeof toneAnalysisSchema>;
 
@@ -29,18 +31,16 @@ export const ToneAnalysis: React.FC<ToneAnalysisProps> = ({ onNext, onBack }) =>
     setLoading(true);
     setAnalysisResult(null);
 
-    // --- Placeholder for AI Service Call ---
-    // In a real app, you would call your AI service here.
-    // const result = await aiService.analyzeTone(data.referenceContent);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    const mockResult: ToneAnalysisResult = {
-      tone: "Casual, Humorous, Engaging",
-      keywords: ["social media", "AI", "content creation", "growth"],
-    };
-    // --- End of Placeholder ---
-
-    setAnalysisResult(mockResult);
-    setLoading(false);
+    try {
+      const result = await analyzeTone(data.referenceContent);
+      setAnalysisResult(result);
+      toast.success("Analysis complete!");
+    } catch (error) {
+      toast.error("Analysis failed. Please try again.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -65,27 +65,33 @@ export const ToneAnalysis: React.FC<ToneAnalysisProps> = ({ onNext, onBack }) =>
               {errors.referenceContent && <p className="text-sm text-destructive">{errors.referenceContent.message}</p>}
             </div>
             {analysisResult && (
-              <div className="rounded-lg border bg-muted p-4">
-                <h4 className="font-semibold">Analysis Complete</h4>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Detected Tone:</span> {analysisResult.tone}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Key Keywords:</span> {analysisResult.keywords.join(', ')}
-                </p>
+              <div className="rounded-lg border bg-muted p-4 animate-in fade-in-50">
+                <h4 className="font-semibold mb-2">Analysis Complete</h4>
+                <div className="space-y-2">
+                  <p className="text-sm">
+                    <span className="font-medium">Detected Tone:</span> {analysisResult.tone}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {analysisResult.keywords.map((k, i) => (
+                      <span key={i} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                        {k}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </CardContent>
         <CardFooter className="flex justify-between border-t px-6 py-4">
-          <Button variant="outline" onClick={onBack}>Back</Button>
+          <Button variant="outline" type="button" onClick={onBack}>Back</Button>
           {!analysisResult ? (
             <Button type="submit" disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
               Analyze Tone
             </Button>
           ) : (
-            <Button onClick={() => onNext(analysisResult)}>Next</Button>
+            <Button type="button" onClick={() => onNext(analysisResult)}>Next</Button>
           )}
         </CardFooter>
       </form>

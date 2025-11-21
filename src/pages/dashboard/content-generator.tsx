@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Sparkles, Facebook, Youtube } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Loader2, Sparkles, Facebook, Youtube, Video } from 'lucide-react';
 import { GeneratedContent, Platform } from '@/types';
-import { Video } from 'lucide-react';
+import { generateContent } from '@/lib/ai-service';
+import toast from 'react-hot-toast';
 
-type ContentGeneratorFormData = z.infer<typeof contentGeneratorSchema>;
+type ContentGeneratorFormData = z.infer<typeof contentGeneratorSchema> & { topic: string };
 
 interface ContentGeneratorProps {
   onContentGenerated: (content: GeneratedContent[]) => void;
@@ -28,34 +30,42 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onContentGen
   const [loading, setLoading] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, watch } = useForm<ContentGeneratorFormData>({
-    resolver: zodResolver(contentGeneratorSchema),
+    resolver: zodResolver(contentGeneratorSchema.extend({
+      topic: z.string().min(3, "Topic is required")
+    })),
     defaultValues: {
       platforms: [],
+      topic: ""
     },
   });
 
-  const selectedPlatforms = watch('platforms');
-
   const handleGeneration = async (data: ContentGeneratorFormData) => {
     setLoading(true);
+    const results: GeneratedContent[] = [];
 
-    // --- Placeholder for AI Content Generation ---
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    const mockContent: GeneratedContent[] = data.platforms.map(platform => {
-      let text = '';
-      if (platform === 'facebook') {
-        text = '🚀 Just launched our new AI-powered marketing tool! Generate viral content in seconds. #AI #Marketing #SocialMedia';
-      } else if (platform === 'tiktok') {
-        text = `[Scene: Upbeat music]\n\nText on screen: Tired of writer's block?\n\n(Person looking stressed at laptop)\n\nText on screen: Try Marketing AI!\n\n(Person now happy, content appears magically)\n\nVoiceover: Go from zero to hero in seconds. Link in bio! #MarketingAI #ContentHacks`;
-      } else if (platform === 'youtube') {
-        text = `(Intro music)\n\nHost: Are you struggling to create content for your business?\n\n(Quick cuts of different social media apps)\n\nHost: What if I told you AI could do it for you? Check out Marketing AI. It analyzes your brand and writes posts for you. It's a game-changer! #AIShorts #MarketingTools`;
+    try {
+      // Generate content for each selected platform sequentially
+      for (const platformId of data.platforms) {
+        const platform = platformId as Platform;
+        const text = await generateContent(platform, data.topic);
+        
+        results.push({
+          id: crypto.randomUUID(), // Temporary ID until saved
+          user_id: '', // Filled by parent or context
+          platform,
+          text,
+          created_at: new Date().toISOString()
+        });
       }
-      return { id: platform, platform: platform as Platform, text };
-    });
-    // --- End of Placeholder ---
-
-    onContentGenerated(mockContent);
-    setLoading(false);
+      
+      onContentGenerated(results);
+      toast.success("Content generated successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to generate content. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,23 +73,33 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onContentGen
       <form onSubmit={handleSubmit(handleGeneration)}>
         <CardHeader>
           <CardTitle>Content Generation</CardTitle>
-          <CardDescription>Select the platforms you want to generate content for.</CardDescription>
+          <CardDescription>Describe what you want to post about.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <div className="grid gap-6">
             <div className="grid gap-2">
-              <Label>Platforms</Label>
+              <Label htmlFor="topic">Topic / Idea</Label>
+              <Input 
+                id="topic" 
+                placeholder="e.g. New Summer Coffee Menu Launch" 
+                {...register('topic')}
+              />
+              {errors.topic && <p className="text-sm text-destructive">{errors.topic.message}</p>}
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Target Platforms</Label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {platforms.map(p => (
-                  <div key={p.id} className="flex items-start">
+                  <div key={p.id} className="flex items-start p-3 border rounded-md hover:bg-accent cursor-pointer">
                     <Checkbox
                       id={p.id}
                       value={p.id}
                       className="me-3 mt-1"
                       {...register('platforms')}
                     />
-                    <div className="grid gap-1.5 leading-none">
-                      <label htmlFor={p.id} className="flex items-center font-medium cursor-pointer">
+                    <div className="grid gap-1.5 leading-none w-full">
+                      <label htmlFor={p.id} className="flex items-center font-medium cursor-pointer w-full">
                         {p.icon}
                         <span className="ms-2">{p.label}</span>
                       </label>
@@ -92,7 +112,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ onContentGen
           </div>
         </CardContent>
         <CardFooter className="flex justify-between border-t px-6 py-4">
-          <Button variant="outline" onClick={onBack}>Back</Button>
+          <Button variant="outline" type="button" onClick={onBack}>Back</Button>
           <Button type="submit" disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
             Generate Content
