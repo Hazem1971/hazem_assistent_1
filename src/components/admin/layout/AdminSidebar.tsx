@@ -1,13 +1,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Link } from 'react-router-dom';
-import { BotMessageSquare, Home, Users, FileText, CreditCard, Cpu, Settings, FileEdit, TicketPercent } from 'lucide-react';
+import { BotMessageSquare, Home, Users, FileText, CreditCard, Cpu, Settings, FileEdit, TicketPercent, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/admin', icon: Home, label: 'dashboard' },
   { to: '/admin/users', icon: Users, label: 'users' },
   { to: '/admin/content', icon: FileText, label: 'content' },
+  { to: '/admin/strategies', icon: Lightbulb, label: 'Strategies' }, // New Item
   { to: '/admin/billing', icon: CreditCard, label: 'billing' },
   { to: '/admin/marketing', icon: TicketPercent, label: 'marketing' },
   { to: '/admin/ai-settings', icon: Cpu, label: 'ai_settings' },
@@ -42,7 +43,7 @@ export const AdminSidebar: React.FC = () => {
                 }
               >
                 <item.icon className="h-4 w-4" />
-                {t(item.label)}
+                {item.label === 'Strategies' ? 'Strategies' : t(item.label)}
               </NavLink>
             ))}
           </nav>

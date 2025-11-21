@@ -8,11 +8,15 @@ import { ToneAnalysis } from './tone-analysis';
 import { ContentGenerator } from './content-generator';
 import { ContentPreview } from './content-preview';
 import { GeneratedContent, ToneAnalysisResult } from '@/types';
+import { Button } from '@/components/ui/button';
+import { CalendarDays, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const steps = ["Business Profile", "Tone Analysis", "Generate Content"];
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [businessProfile, setBusinessProfile] = useState(null);
   const [toneResult, setToneResult] = useState<ToneAnalysisResult | null>(null);
@@ -57,9 +61,26 @@ export function DashboardPage() {
       <Header />
       <main className="flex-1">
         <div className="container mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+          
+          {/* New Campaign Banner */}
+          <div className="mb-8 bg-primary/5 border border-primary/20 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-primary" />
+                Full Campaign Planner
+              </h2>
+              <p className="text-muted-foreground">
+                Plan, organize, and schedule content for your clients with our new Campaign System.
+              </p>
+            </div>
+            <Button onClick={() => navigate('/dashboard/campaigns')} size="lg">
+              Manage Campaigns <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+
           <div className="space-y-8">
             <div className="text-center">
-              <h1 className="text-3xl font-bold tracking-tight">Content Generation Wizard</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Quick Content Wizard</h1>
               <p className="mt-2 text-muted-foreground">
                 Welcome, {user?.email}! Let's create some amazing content in 3 simple steps.
               </p>

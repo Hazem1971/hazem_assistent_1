@@ -1,6 +1,6 @@
 import { User } from "@supabase/supabase-js";
 
-export type Platform = 'facebook' | 'tiktok' | 'youtube';
+export type Platform = 'facebook' | 'tiktok' | 'youtube' | 'instagram' | 'linkedin' | 'twitter';
 
 export interface Profile extends User {
   id: string;
@@ -120,4 +120,45 @@ export interface AIProvider {
   is_active: boolean;
   base_url: string;
   updated_at: string;
+}
+
+// --- Campaign System Types ---
+
+export interface Campaign {
+  id: string;
+  user_id: string;
+  client_name: string;
+  brand_voice: string;
+  target_audience: string;
+  goals: string;
+  notes: string;
+  period: 'week' | 'month' | 'custom';
+  start_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CampaignPost {
+  id: string;
+  campaign_id: string;
+  platform: Platform;
+  post_date: string;
+  caption: string;
+  media_urls: string[] | null;
+  tone: string;
+  hashtags: string;
+  call_to_action: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminStrategy {
+  id: string;
+  title: string;
+  description: string;
+  tone: string;
+  industry: string;
+  example_posts: any[]; // JSONB
+  is_active: boolean;
+  created_at: string;
 }

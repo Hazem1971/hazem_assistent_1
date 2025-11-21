@@ -20,7 +20,10 @@ import AdminAiSettingsPage from './pages/admin/ai-settings';
 import AdminSystemPage from './pages/admin/system';
 import AdminSiteContentPage from './pages/admin/site-content';
 import AdminMarketingPage from './pages/admin/marketing';
+import AdminStrategiesPage from './pages/admin/strategies';
 import AccountPage from './pages/account-page';
+import { CampaignListPage } from './pages/dashboard/campaigns/campaign-list';
+import { CampaignEditorPage } from './pages/dashboard/campaigns/campaign-editor';
 
 function App() {
   useDirection();
@@ -44,6 +47,26 @@ function App() {
         element={
           <PrivateRoute>
             <DashboardPage />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/campaigns" 
+        element={
+          <PrivateRoute>
+            <div className="container mx-auto py-8 px-4">
+              <CampaignListPage />
+            </div>
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/campaigns/:id" 
+        element={
+          <PrivateRoute>
+            <div className="container mx-auto py-8 px-4">
+              <CampaignEditorPage />
+            </div>
           </PrivateRoute>
         } 
       />
@@ -75,6 +98,7 @@ function App() {
         <Route path="system" element={<AdminSystemPage />} />
         <Route path="site-content" element={<AdminSiteContentPage />} />
         <Route path="marketing" element={<AdminMarketingPage />} />
+        <Route path="strategies" element={<AdminStrategiesPage />} />
       </Route>
 
       {/* Fallback */}
