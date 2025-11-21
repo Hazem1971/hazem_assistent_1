@@ -8,6 +8,8 @@ export interface Profile extends User {
   company: string | null;
   role: 'admin' | 'user';
   subscription_plan: string | null;
+  email?: string;
+  created_at: string; // Explicitly defined to match table column
 }
 
 export interface AuthSession {

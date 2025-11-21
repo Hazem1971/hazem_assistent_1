@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, Loader2 } from 'lucide-react';
-import { BillingInvoice, Profile } from '@/types';
+import { BillingInvoice } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/lib/supabase';
 
@@ -29,13 +29,21 @@ export const BillingTab: React.FC = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        setInvoices(data);
+        setInvoices(data || []);
       }
       setLoading(false);
     };
 
     fetchBillingInfo();
   }, [user]);
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return 'N/A';
+    }
+  };
 
   return (
     <div className="grid gap-6">
@@ -45,7 +53,6 @@ export const BillingTab: React.FC = () => {
           <CardDescription>You are currently on the <span className="font-semibold">{user?.subscription_plan || 'Free'}</span> Plan.</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* This part can be made dynamic based on the user's plan */}
           <div className="flex items-baseline">
             <span className="text-4xl font-bold">{user?.subscription_plan === 'Pro' ? '$29' : '$0'}</span>
             <span className="text-muted-foreground">/month</span>
@@ -83,7 +90,7 @@ export const BillingTab: React.FC = () => {
               ) : invoices.length > 0 ? (
                 invoices.map((invoice) => (
                   <TableRow key={invoice.id}>
-                    <TableCell>{new Date(invoice.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatDate(invoice.created_at)}</TableCell>
                     <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="outline" size="sm" asChild>

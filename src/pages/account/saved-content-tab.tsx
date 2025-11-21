@@ -40,10 +40,21 @@ export const SavedContentTab: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<GeneratedContent | null>(null);
 
+  const isLocalUser = user?.app_metadata?.provider === 'local';
+
   useEffect(() => {
     const fetchContent = async () => {
       if (!user) return;
       setLoading(true);
+
+      if (isLocalUser) {
+        // Local Storage Mock for Test User
+        const localData = localStorage.getItem('mai_local_content');
+        setData(localData ? JSON.parse(localData) : []);
+        setLoading(false);
+        return;
+      }
+
       const { data: content, error } = await supabase
         .from('generated_content')
         .select('*')
@@ -53,15 +64,42 @@ export const SavedContentTab: React.FC = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        setData(content);
+        setData(content || []);
       }
       setLoading(false);
     };
     fetchContent();
-  }, [user]);
+  }, [user, isLocalUser]);
+
+  const saveToLocal = (newData: GeneratedContent[]) => {
+    localStorage.setItem('mai_local_content', JSON.stringify(newData));
+    setData(newData);
+  };
 
   const handleSave = async (content: GeneratedContent) => {
-    if (content.id) { // Editing existing content
+    if (isLocalUser) {
+      // Handle Local User Save
+      if (content.id) {
+        const updatedData = data.map(item => item.id === content.id ? { ...content, updated_at: new Date().toISOString() } : item);
+        saveToLocal(updatedData);
+        toast.success('Content updated (Local Mode)!');
+      } else {
+        const newContent = { 
+          ...content, 
+          id: crypto.randomUUID(), 
+          user_id: user!.id, 
+          created_at: new Date().toISOString() 
+        };
+        saveToLocal([newContent, ...data]);
+        toast.success('Content created (Local Mode)!');
+      }
+      setIsModalOpen(false);
+      setEditingContent(null);
+      return;
+    }
+
+    // Handle Real Supabase User Save
+    if (content.id) { 
       const { data: updatedContent, error } = await supabase
         .from('generated_content')
         .update({ text: content.text, platform: content.platform })
@@ -74,7 +112,7 @@ export const SavedContentTab: React.FC = () => {
         setData(data.map(item => item.id === content.id ? updatedContent : item));
         toast.success('Content updated!');
       }
-    } else { // Creating new content
+    } else { 
       if (!user) return;
       const { data: newContent, error } = await supabase
         .from('generated_content')
@@ -93,6 +131,13 @@ export const SavedContentTab: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (isLocalUser) {
+      const filteredData = data.filter(item => item.id !== id);
+      saveToLocal(filteredData);
+      toast.success('Content deleted (Local Mode)!');
+      return;
+    }
+
     const { error } = await supabase.from('generated_content').delete().eq('id', id);
     if (error) {
       toast.error(error.message);
@@ -118,7 +163,13 @@ export const SavedContentTab: React.FC = () => {
     }),
     columnHelper.accessor('created_at', {
       header: t('created_at'),
-      cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+      cell: (info) => {
+        try {
+          return new Date(info.getValue()).toLocaleDateString();
+        } catch {
+          return 'N/A';
+        }
+      },
     }),
     columnHelper.display({
       id: 'actions',
@@ -161,7 +212,11 @@ export const SavedContentTab: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>{t('saved_content')}</CardTitle>
-              <CardDescription>Manage all the content you've generated.</CardDescription>
+              <CardDescription>
+                {isLocalUser 
+                  ? "Manage your generated content (Local Test Mode)." 
+                  : "Manage all the content you've generated."}
+              </CardDescription>
             </div>
             <Button onClick={() => { setEditingContent(null); setIsModalOpen(true); }}>
               <Plus className="mr-2 h-4 w-4" /> {t('create_post')}

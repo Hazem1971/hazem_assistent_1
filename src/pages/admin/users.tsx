@@ -5,32 +5,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { UserTable } from '@/components/admin/users/UserTable';
 import { supabase } from '@/lib/supabase';
 import { Profile } from '@/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AdminUsersPage: React.FC = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchUsers = async () => {
+    setLoading(true);
+    // We select * which should now include 'email' from the migration
+    const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setUsers(data as Profile[]);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      const { data, error } = await supabase.from('profiles').select('*');
-      if (error) {
-        toast.error(error.message);
-      } else {
-        setUsers(data as Profile[]);
-      }
-      setLoading(false);
-    };
     fetchUsers();
   }, []);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{t('manage_users')}</CardTitle>
-        <CardDescription>View, edit, and manage all users on the platform.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>{t('manage_users')}</CardTitle>
+          <CardDescription>View, edit, and manage all users on the platform.</CardDescription>
+        </div>
+        <Button variant="outline" size="icon" onClick={fetchUsers} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        </Button>
       </CardHeader>
       <CardContent>
         {loading ? (

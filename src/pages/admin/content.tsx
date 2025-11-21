@@ -5,38 +5,61 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ContentTable } from '@/components/admin/content/ContentTable';
 import { supabase } from '@/lib/supabase';
 import { GeneratedContent } from '@/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AdminContentPage: React.FC = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
-  const [content, setContent] = useState<GeneratedContent[]>([]);
+  const [content, setContent] = useState<(GeneratedContent & { author: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      setLoading(true);
-      // Joining with profiles to get author email
-      const { data, error } = await supabase
+  const fetchContent = async () => {
+    setLoading(true);
+    try {
+      // 1. Fetch all generated content
+      const { data: contentData, error: contentError } = await supabase
         .from('generated_content')
-        .select(`
-          *,
-          profiles (
-            email
-          )
-        `);
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      if (error) {
-        toast.error(error.message);
-      } else {
-        // Reshape the data to match what the table expects
-        const reshapedData = data.map((item: any) => ({
-          ...item,
-          author: item.profiles.email,
-        }));
-        setContent(reshapedData);
+      if (contentError) throw contentError;
+
+      if (!contentData || contentData.length === 0) {
+        setContent([]);
+        setLoading(false);
+        return;
       }
+
+      // 2. Get unique user IDs
+      const userIds = [...new Set(contentData.map(item => item.user_id))];
+
+      // 3. Fetch profiles for these users to get emails
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // 4. Create a map of userId -> email
+      const emailMap = new Map(profilesData?.map(p => [p.id, p.email]) || []);
+
+      // 5. Merge data
+      const mergedData = contentData.map(item => ({
+        ...item,
+        author: emailMap.get(item.user_id) || 'Unknown',
+      }));
+
+      setContent(mergedData);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to fetch content');
+      console.error(error);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
+
+  useEffect(() => {
     fetchContent();
   }, []);
 
@@ -54,9 +77,14 @@ const AdminContentPage: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{t('manage_content')}</CardTitle>
-        <CardDescription>View, moderate, and manage all user-generated content.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>{t('manage_content')}</CardTitle>
+          <CardDescription>View, moderate, and manage all user-generated content.</CardDescription>
+        </div>
+        <Button variant="outline" size="icon" onClick={fetchContent} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        </Button>
       </CardHeader>
       <CardContent>
         {loading ? (

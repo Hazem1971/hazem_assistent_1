@@ -35,12 +35,21 @@ interface UserTableProps {
   users: Profile[];
 }
 
+const formatDate = (dateString: string | null | undefined) => {
+  if (!dateString) return 'N/A';
+  try {
+    return new Date(dateString).toLocaleDateString();
+  } catch (e) {
+    return 'Invalid Date';
+  }
+};
+
 const columnHelper = createColumnHelper<Profile>();
 
 const columns = [
   columnHelper.accessor('email', {
     header: 'Email',
-    cell: (info) => info.getValue(),
+    cell: (info) => info.getValue() || 'No Email',
   }),
   columnHelper.accessor('role', {
     header: 'Role',
@@ -52,7 +61,7 @@ const columns = [
   }),
   columnHelper.accessor('created_at', {
     header: 'Joined',
-    cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+    cell: (info) => formatDate(info.getValue()),
   }),
   columnHelper.display({
     id: 'actions',
@@ -77,7 +86,8 @@ const columns = [
 
 export const UserTable: React.FC<UserTableProps> = ({ users }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
-  const [data] = React.useState(() => [...users]);
+  // Ensure data is always an array
+  const data = React.useMemo(() => users || [], [users]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
 

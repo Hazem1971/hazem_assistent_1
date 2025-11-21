@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { Link } from "react-router-dom"
-import ReCAPTCHA from "react-google-recaptcha"
 import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
@@ -16,19 +15,11 @@ export function SignupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  
-  const recaptchaRef = React.createRef<ReCAPTCHA>();
-  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
   
   const auth = useAuth();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!captchaToken) {
-      toast.error("Please complete the reCAPTCHA.");
-      return;
-    }
     setLoading(true);
 
     const { data, error } = await auth.signUp({ 
@@ -49,8 +40,6 @@ export function SignupPage() {
     }
 
     setLoading(false);
-    recaptchaRef.current?.reset();
-    setCaptchaToken(null);
   };
 
   const handleGoogleSignup = async () => {
@@ -118,19 +107,7 @@ export function SignupPage() {
                 disabled={loading}
               />
             </div>
-            <div className="grid gap-2">
-                {siteKey ? (
-                    <ReCAPTCHA
-                        ref={recaptchaRef}
-                        sitekey={siteKey}
-                        onChange={setCaptchaToken}
-                        theme="dark"
-                    />
-                ) : (
-                    <p className="text-sm text-yellow-500">reCAPTCHA is not configured.</p>
-                )}
-            </div>
-            <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               Create account
             </Button>

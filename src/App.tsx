@@ -5,6 +5,7 @@ import { PageLayout } from './components/layout/page-layout';
 import { useDirection } from './hooks/use-direction';
 import { LoginPage } from './pages/login-page';
 import { SignupPage } from './pages/signup-page';
+import { AdminLoginPage } from './pages/admin-login-page';
 import { DashboardPage } from './pages/dashboard/dashboard-page';
 import { PrivateRoute } from './components/auth/private-route';
 import { AdminRoute } from './components/auth/admin-route';
@@ -28,6 +29,7 @@ function App() {
       <Route path="/" element={<PageLayout><HomePage /></PageLayout>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/admin-login" element={<AdminLoginPage />} />
       
       {/* User Protected Routes */}
       <Route 

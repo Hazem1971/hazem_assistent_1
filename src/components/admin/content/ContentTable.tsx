@@ -43,6 +43,14 @@ const platformIcons = {
   youtube: <Youtube className="h-5 w-5" />,
 };
 
+const formatDate = (dateString: string) => {
+  try {
+    return new Date(dateString).toLocaleDateString();
+  } catch (e) {
+    return 'N/A';
+  }
+};
+
 export const ContentTable: React.FC<ContentTableProps> = ({ content, onDelete }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -68,7 +76,7 @@ export const ContentTable: React.FC<ContentTableProps> = ({ content, onDelete })
     }),
     columnHelper.accessor('created_at', {
       header: 'Generated On',
-      cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+      cell: (info) => formatDate(info.getValue()),
     }),
     columnHelper.display({
       id: 'actions',

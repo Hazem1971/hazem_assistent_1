@@ -31,7 +31,7 @@ export const ApiKeysTab: React.FC = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        setKeys(data);
+        setKeys(data || []);
       }
       setLoading(false);
     };

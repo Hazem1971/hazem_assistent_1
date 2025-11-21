@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { SubscriptionPlans } from '@/components/admin/billing/SubscriptionPlans';
 import { Plan } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, RefreshCw } from 'lucide-react';
 import { EditPlanModal } from '@/components/admin/billing/EditPlanModal';
 import { supabase } from '@/lib/supabase';
 
@@ -16,17 +16,18 @@ const AdminBillingPage: React.FC = () => {
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const fetchPlans = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('plans').select('*').order('created_at');
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setPlans(data);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchPlans = async () => {
-      setLoading(true);
-      const { data, error } = await supabase.from('plans').select('*').order('created_at');
-      if (error) {
-        toast.error(error.message);
-      } else {
-        setPlans(data);
-      }
-      setLoading(false);
-    };
     fetchPlans();
   }, []);
 
@@ -35,7 +36,7 @@ const AdminBillingPage: React.FC = () => {
       // Update existing plan
       const { data, error } = await supabase
         .from('plans')
-        .update({ ...planToSave, id: undefined, created_at: undefined }) // Don't update id or created_at
+        .update({ ...planToSave, id: undefined, created_at: undefined }) 
         .eq('id', planToSave.id)
         .select()
         .single();
@@ -90,9 +91,14 @@ const AdminBillingPage: React.FC = () => {
             <CardTitle>{t('manage_billing')}</CardTitle>
             <CardDescription>Configure subscription plans and pricing.</CardDescription>
           </div>
-          <Button onClick={() => handleOpenModal(null)}>
-            <Plus className="mr-2 h-4 w-4" /> {t('add_plan')}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" onClick={fetchPlans} disabled={loading}>
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button onClick={() => handleOpenModal(null)}>
+                <Plus className="mr-2 h-4 w-4" /> {t('add_plan')}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
