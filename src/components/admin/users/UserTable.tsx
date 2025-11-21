@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   createColumnHelper,
@@ -20,19 +20,23 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Profile } from '@/types';
 
 interface UserTableProps {
   users: Profile[];
+  onView: (user: Profile) => void;
+  onEdit: (user: Profile) => void;
+  onDelete: (user: Profile) => void;
 }
 
 const formatDate = (dateString: string | null | undefined) => {
@@ -46,50 +50,72 @@ const formatDate = (dateString: string | null | undefined) => {
 
 const columnHelper = createColumnHelper<Profile>();
 
-const columns = [
-  columnHelper.accessor('email', {
-    header: 'Email',
-    cell: (info) => info.getValue() || 'No Email',
-  }),
-  columnHelper.accessor('role', {
-    header: 'Role',
-    cell: (info) => <Badge variant={info.getValue() === 'admin' ? 'default' : 'secondary'}>{info.getValue()}</Badge>,
-  }),
-  columnHelper.accessor('subscription_plan', {
-    header: 'Subscription',
-    cell: (info) => info.getValue() || 'Free',
-  }),
-  columnHelper.accessor('created_at', {
-    header: 'Joined',
-    cell: (info) => formatDate(info.getValue()),
-  }),
-  columnHelper.display({
-    id: 'actions',
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem>View profile</DropdownMenuItem>
-          <DropdownMenuItem>Edit user</DropdownMenuItem>
-          <DropdownMenuItem className="text-destructive">Delete user</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  }),
-];
-
-export const UserTable: React.FC<UserTableProps> = ({ users }) => {
+export const UserTable: React.FC<UserTableProps> = ({ users, onView, onEdit, onDelete }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'admin' });
-  // Ensure data is always an array
-  const data = React.useMemo(() => users || [], [users]);
+  const data = useMemo(() => users || [], [users]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
+
+  const columns = useMemo(() => [
+    columnHelper.accessor('email', {
+      header: t('email'),
+      cell: (info) => <span className="font-medium">{info.getValue() || 'No Email'}</span>,
+    }),
+    columnHelper.accessor('full_name', {
+      header: 'Name',
+      cell: (info) => info.getValue() || 'N/A',
+    }),
+    columnHelper.accessor('role', {
+      header: t('role'),
+      cell: (info) => (
+        <Badge variant={info.getValue() === 'admin' ? 'default' : 'secondary'}>
+          {info.getValue()}
+        </Badge>
+      ),
+    }),
+    columnHelper.accessor('subscription_plan', {
+      header: t('subscription'),
+      cell: (info) => (
+        <Badge variant="outline" className={info.row.original.subscription_status === 'active' ? 'border-green-500 text-green-600' : ''}>
+            {info.getValue() || 'Free'}
+        </Badge>
+      ),
+    }),
+    columnHelper.accessor('created_at', {
+      header: t('joined'),
+      cell: (info) => formatDate(info.getValue()),
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: t('actions'),
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => onView(row.original)}>
+              <Eye className="mr-2 h-4 w-4" /> View Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(row.original)}>
+              <Edit className="mr-2 h-4 w-4" /> Edit User
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="text-destructive focus:text-destructive" 
+              onClick={() => onDelete(row.original)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Delete User
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    }),
+  ], [t, onView, onEdit, onDelete]);
 
   const table = useReactTable({
     data,
