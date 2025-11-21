@@ -53,6 +53,8 @@ export const AuthContext = createContext<
     signInWithGoogle: () => Promise<AuthResponse>;
     updateUser: (attributes: UserAttributes) => Promise<AuthResponse>;
     signInAsTestUser: () => Promise<void>;
+    createLocalSession: (user: Profile) => void;
+    updateLocalSession: (updates: Partial<Profile>) => void;
   }) | undefined
 >(undefined);
 
@@ -62,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const initAuth = async () => {
-      // Check for local super admin session
+      // 1. Check for Super Admin
       const isSuperAdmin = localStorage.getItem('mai_super_admin');
       if (isSuperAdmin === 'true') {
         setUser(SUPER_ADMIN_PROFILE);
@@ -70,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Check for local test user session
+      // 2. Check for Fixed Test User
       const isTestUser = localStorage.getItem('mai_test_user');
       if (isTestUser === 'true') {
         setUser(TEST_USER_PROFILE);
@@ -78,7 +80,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Check Supabase session
+      // 3. Check for Dynamic Local Session (Rate Limit Bypass)
+      const localSession = localStorage.getItem('mai_local_session');
+      if (localSession) {
+        try {
+          setUser(JSON.parse(localSession));
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.error("Failed to parse local session", e);
+          localStorage.removeItem('mai_local_session');
+        }
+      }
+
+      // 4. Check Supabase Session
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const { data: profile } = await supabase
@@ -96,7 +111,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         // If we are logged in as local user, ignore supabase state changes
-        if (localStorage.getItem('mai_super_admin') === 'true' || localStorage.getItem('mai_test_user') === 'true') {
+        if (localStorage.getItem('mai_super_admin') === 'true' || 
+            localStorage.getItem('mai_test_user') === 'true' ||
+            localStorage.getItem('mai_local_session')) {
             return;
         }
 
@@ -147,17 +164,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(TEST_USER_PROFILE);
   };
 
+  const createLocalSession = (newUser: Profile) => {
+    localStorage.setItem('mai_local_session', JSON.stringify(newUser));
+    setUser(newUser);
+  };
+
+  const updateLocalSession = (updates: Partial<Profile>) => {
+    if (!user) return;
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    
+    // Update storage based on type of user
+    if (localStorage.getItem('mai_local_session')) {
+      localStorage.setItem('mai_local_session', JSON.stringify(updatedUser));
+    }
+  };
+
   const signOut = async () => {
-    if (localStorage.getItem('mai_super_admin') === 'true') {
-      localStorage.removeItem('mai_super_admin');
-      setUser(null);
-      return { error: null };
-    }
-    if (localStorage.getItem('mai_test_user') === 'true') {
-      localStorage.removeItem('mai_test_user');
-      setUser(null);
-      return { error: null };
-    }
+    localStorage.removeItem('mai_super_admin');
+    localStorage.removeItem('mai_test_user');
+    localStorage.removeItem('mai_local_session');
+    setUser(null);
     return supabase.auth.signOut();
   };
 
@@ -175,6 +202,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }),
     updateUser: (attributes: UserAttributes) => supabase.auth.updateUser(attributes),
     signInAsTestUser,
+    createLocalSession,
+    updateLocalSession,
   };
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;

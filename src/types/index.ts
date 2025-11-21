@@ -9,7 +9,11 @@ export interface Profile extends User {
   role: 'admin' | 'user';
   subscription_plan: string | null;
   email?: string;
-  created_at: string; // Explicitly defined to match table column
+  created_at: string;
+  // New fields
+  subscription_status?: 'active' | 'inactive' | 'pending';
+  plan_id?: string;
+  payment_date?: string;
 }
 
 export interface AuthSession {

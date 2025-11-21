@@ -65,7 +65,8 @@ export function HomePage() {
               {t('hero.subtitle')}
             </p>
             <Button size="lg" className="mt-8" asChild>
-              <Link to="/signup">{t('hero.cta')}</Link>
+              {/* Updated Link to Choose Plan */}
+              <Link to="/choose-plan">{t('hero.cta')}</Link>
             </Button>
           </motion.div>
         </div>
@@ -127,7 +128,10 @@ export function HomePage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button variant={tier.variant} className="w-full">{tier.cta}</Button>
+                    <Button variant={tier.variant} className="w-full" asChild>
+                       {/* Updated Link to Choose Plan */}
+                       <Link to="/choose-plan">{tier.cta}</Link>
+                    </Button>
                   </CardFooter>
                 </Card>
               </motion.div>

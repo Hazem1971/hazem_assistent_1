@@ -1,10 +1,12 @@
 import { Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { HomePage } from './pages/home-page';
 import { PageLayout } from './components/layout/page-layout';
 import { useDirection } from './hooks/use-direction';
 import { LoginPage } from './pages/login-page';
 import { SignupPage } from './pages/signup-page';
+import { ChoosePlanPage } from './pages/choose-plan-page';
+import { PaymentPage } from './pages/payment-page';
 import { AdminLoginPage } from './pages/admin-login-page';
 import { DashboardPage } from './pages/dashboard/dashboard-page';
 import { PrivateRoute } from './components/auth/private-route';
@@ -28,7 +30,12 @@ function App() {
       {/* Public Routes */}
       <Route path="/" element={<PageLayout><HomePage /></PageLayout>} />
       <Route path="/login" element={<LoginPage />} />
+      
+      {/* New Flow Routes */}
+      <Route path="/choose-plan" element={<ChoosePlanPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/payment" element={<PaymentPage />} />
+      
       <Route path="/admin-login" element={<AdminLoginPage />} />
       
       {/* User Protected Routes */}
@@ -69,6 +76,9 @@ function App() {
         <Route path="site-content" element={<AdminSiteContentPage />} />
         <Route path="marketing" element={<AdminMarketingPage />} />
       </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

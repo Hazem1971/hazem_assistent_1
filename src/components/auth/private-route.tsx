@@ -14,12 +14,21 @@ export const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children
     );
   }
 
+  // 1. Check if logged in
   if (!user) {
-    // Redirect them to the /login page, but save the current location they were
-    // trying to go to when they were redirected. This allows us to send them
-    // along to that page after they login, which is a nicer user experience
-    // than dropping them off on the home page.
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // 2. Check subscription status for Dashboard access
+  // Note: We allow access to /account even if inactive, but dashboard is restricted
+  // based on the prompt requirements.
+  const isDashboard = location.pathname.startsWith('/dashboard');
+  
+  // Allow admin and test users to bypass subscription check
+  const isSpecialUser = user.role === 'admin' || user.app_metadata?.provider === 'local';
+
+  if (isDashboard && !isSpecialUser && user.subscription_status !== 'active') {
+    return <Navigate to="/choose-plan" replace />;
   }
 
   return <>{children}</>;
